@@ -66,11 +66,9 @@ class WslExecCommand(ExecCommand):
         args = sublime.expand_variables (kwargs, variables)
 
         # Rename the command paramter to what exec expects.
-        args["cmd"] = ["wsl"] + args.pop("wsl_cmd", [])
-        
-        if "wsl_working_dir" in args:
-            args["working_dir"] = args.pop("wsl_working_dir", [])
-        
+        working_dir = args.pop("wsl_working_dir", None)
+        args["cmd"] = self.wsl_cmd(args.pop("wsl_cmd", []), working_dir)
+                    
         if "wsl_env" in args:
             args["env"] = self.wsl_env(args.pop("wsl_env", []))
 
@@ -79,6 +77,14 @@ class WslExecCommand(ExecCommand):
     def wsl_path(self, string):
         prefix_removed = re.sub("\\\\\\\\wsl.localhost\\\\Ubuntu", "", string)
         return re.sub("\\\\", "/", prefix_removed)
+
+    def wsl_cmd(self, cmd_ary, working_dir):
+        result = ["wsl"]
+        if working_dir:
+            result += ["cd", working_dir, "&&"]
+        result += cmd_ary
+        return result
+
 
     def wsl_env(self, dict):
         dict["WSLENV"] = ":".join(dict.keys())
