@@ -209,10 +209,16 @@ class WslExecCommand(ExecCommand):
         :returns:
             A dict of environment variables to use to execute the command.
         """
-        env["WSLENV"] = ":".join(env.keys())
-        for key in list(env):
-            if key[-2] == "/" and key[-1] in ("l", "p", "u", "w"):
-                env[key[:-2]] = env.pop(key)
+        keys = list(env)
+        if keys:
+            existing = env.get("WSLENV", "")
+            env["WSLENV"] = ":".join(keys)
+            if existing:
+                env["WSLENV"] += ":" + existing.strip(" :")
+
+            for key in keys:
+                if key[-2] == "/" and key[-1] in ("l", "p", "u", "w"):
+                    env[key[:-2]] = env.pop(key)
         return env
 
     def wsl_path(self, path):
